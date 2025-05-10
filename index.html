@@ -1,50 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./public/styles/index.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./public/styles/index.css" />
     <title>Dashboard</title>
-</head>
-<body>
-
+  </head>
+  <body>
     <h1>Welcome to the Dashboard</h1>
     <div class="info-container">
-        <div class="info-box-container">
-            <div class="info-box">
-                <img src="image1.jpg" alt="Description of image 1" srcset="">
-                <p>Info Box 1</p>
-                <h2>20000</h2>
-            </div>
-            <div class="info-box">
-                <img src="image2.jpg" alt="Description of image 2" srcset="">
-                <p>Info Box 2</p>
-                <h2>15000</h2>
-            </div>
-            <div class="info-box">
-                <img src="image3.jpg" alt="Description of image 3" srcset="">
-                <p>Info Box 3</p>
-                <h2>10000</h2>
-            </div>
-  
+      <div class="info-box-container">
+        <div class="info-box">
+          <img
+            src="./src/app/ui/svg/paper.svg"
+            alt="Description of image 1"
+            srcset=""
+          />
+          <p>Sales</p>
+          <h2 id="sales-count">20000</h2>
         </div>
-        <div>
-            <h2>Info Box 4</h2>
-            <p>This is some information about the fourth box.</p>
+        <div class="info-box">
+          <img
+            src="./src/app/ui/svg/sales.svg"
+            alt="Description of image 2"
+            srcset=""
+          />
+          <p>Stores</p>
+          <h2 id="store-count">15000</h2>
         </div>
+        <div class="info-box">
+          <img
+            src="./src/app/ui/svg/chart.svg"
+            alt="Description of image 3"
+            srcset=""
+          />
+          <p>Features</p>
+          <h2 id="feature-count">10000</h2>
+        </div>
+      </div>
+      <div>
+        <h2>Info Box 4</h2>
+        <p>This is some information about the fourth box.</p>
+      </div>
     </div>
     <h1>Brr</h1>
-    <div id="container-line"></div>
-    <div id="container-pie"></div>
-    <div id="container-area"></div>
-    <div id="container-bars"></div>
-    <div id="container-histogram"></div>
-    <script type="module" src="./actividad_1/scripts/lineChart.js"></script>
-    <script type="module" src="./actividad_1/scripts/pieChart.js"></script>
-    <script type="module" src="./actividad_1/scripts/areaChart.js"></script>
-    <script type="module" src="./actividad_1/scripts/histogramChart.js"></script>
-    <script type="module" src="./actividad_1/scripts/barChart.js"></script>
-</body>
-
+    <div class="chart-container">
+      <div id="container-line"></div>
+      <div id="container-pie"></div>
+      <div id="container-area"></div>
+      <div id="container-bars"></div>
+      <div id="container-histogram"></div>
+    </div>
+    <script type="module" src="./src/app/libs/functions/countAnimation.js"></script>
+    <script type="module" src="./src/app/libs/functions/presentGraphics.js"></script>
+  </body>
 </html>
