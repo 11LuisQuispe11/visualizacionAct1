@@ -1,16 +1,11 @@
 import { CSVHandler } from '../data/csvHandler.js';
 import { Counter } from '../counters/counter.js';
 
-console.log("Modules loaded successfully");
-
 const csvHandler = new CSVHandler("src/app/libs/data/sales.csv");
-console.log("CSVHandler instance created:", csvHandler);
 
 csvHandler
-    .extractData()
+    .extractDataFromSales()
     .then((data) => {
-        console.log("Data extracted:", data);
-
         // Calculate totals
         const totalSales = data.reduce((sum, row) => sum + row.Weekly_Sales, 0);
         const uniqueStores = new Set(data.map(row => row.Store)).size;

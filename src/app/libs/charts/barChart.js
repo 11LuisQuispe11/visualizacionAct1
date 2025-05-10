@@ -4,33 +4,52 @@ import { Chart } from './chart.js';
 export class BarChart extends Chart {
     constructor(data) {
         super(data);
-        this.data = data;
+        this.data = this.processData(data);
+        this.width = 960;
+        this.height = 500;
         this.styles = {
-            width: 960,
-            height: 500,
-            marginTop: 20,
-            marginRight: 30,
-            marginBottom: 30,
-            marginLeft: 40
+            width: this.width,
+            height: this.height,
+            top: 20,
+            right: 30,
+            bottom: 70, // Increased to accommodate rotated labels
+            left: 60    // Increased to accommodate sales values
         };
     }
 
+    processData(rawData) {
+        if (!rawData) return [];
+        
+        // Group by Store and sum Weekly_Sales
+        const groupedData = d3.rollups(
+            rawData,
+            v => d3.sum(v, d => d.Weekly_Sales),
+            d => d.Store
+        );
+
+        // Sort by store number
+        groupedData.sort((a, b) => a[0] - b[0]);
+        
+        console.log("Processed bar data:", groupedData);
+        return groupedData;
+    }
 
     initChart(id) {
-        if (!this.data) return;
-
-        const processedData = this.processData(this.data);
+        if (!this.data || this.data.length === 0) {
+            console.error("No data available for bar chart");
+            return;
+        }
 
         // Create scales
         this.x = d3.scaleBand()
-            .domain(processedData.map(d => d[0]))
-            .range([this.margin.left, this.width - this.margin.right])
+            .domain(this.data.map(d => d[0]))
+            .range([this.styles.left, this.width - this.styles.right])
             .padding(0.1);
 
         this.y = d3.scaleLinear()
-            .domain([0, d3.max(processedData, d => d[1])])
+            .domain([0, d3.max(this.data, d => d[1])])
             .nice()
-            .range([this.height - this.margin.bottom, this.margin.top]);
+            .range([this.height - this.styles.bottom, this.styles.top]);
 
         // Create SVG
         this.svg = d3.create("svg")
@@ -42,17 +61,19 @@ export class BarChart extends Chart {
         // Draw bars
         this.svg.append("g")
             .selectAll("rect")
-            .data(processedData)
+            .data(this.data)
             .join("rect")
             .attr("x", d => this.x(d[0]))
             .attr("y", d => this.y(d[1]))
             .attr("height", d => this.y(0) - this.y(d[1]))
             .attr("width", this.x.bandwidth())
-            .attr("fill", "steelblue");
+            .attr("fill", "steelblue")
+            .append("title")
+            .text(d => `Store ${d[0]}\nSales: $${d3.format(",.2f")(d[1])}`);
 
         // Add X axis
         this.svg.append("g")
-            .attr("transform", `translate(0,${this.height - this.margin.bottom})`)
+            .attr("transform", `translate(0,${this.height - this.styles.bottom})`)
             .call(d3.axisBottom(this.x).tickFormat(d => `Store ${d}`))
             .selectAll("text")
             .attr("transform", "rotate(-45)")
@@ -60,51 +81,82 @@ export class BarChart extends Chart {
 
         // Add Y axis
         this.svg.append("g")
-            .attr("transform", `translate(${this.margin.left},0)`)
-            .call(d3.axisLeft(this.y))
+            .attr("transform", `translate(${this.styles.left},0)`)
+            .call(d3.axisLeft(this.y)
+                .tickFormat(d => `$${d3.format(",.0f")(d)}`))
             .call(g => g.select(".domain").remove())
             .call(g => g.append("text")
-                .attr("x", -this.margin.left)
-                .attr("y", this.margin.top - 10)
+                .attr("x", -this.styles.left)
+                .attr("y", this.styles.top - 10)
                 .attr("fill", "currentColor")
                 .attr("text-anchor", "start")
                 .text("↑ Total Sales"));
 
         // Add to container
         const container = document.getElementById(id);
-        container.appendChild(this.svg.node());
+        if (container) {
+            container.appendChild(this.svg.node());
+        } else {
+            console.error(`Container with id '${id}' not found`);
+        }
     }
 
     updateChart(newData) {
         if (!newData || !this.svg) return;
 
-        const processedData = newData
+        const processedData = this.processData(newData);
 
         // Update scales
         this.x.domain(processedData.map(d => d[0]));
         this.y.domain([0, d3.max(processedData, d => d[1])]).nice();
 
         // Update bars
-        this.svg.selectAll("rect")
-            .data(processedData)
-            .join("rect")
-            .transition()
+        const bars = this.svg.selectAll("rect")
+            .data(processedData);
+
+        // Remove old bars
+        bars.exit().remove();
+
+        // Update existing bars
+        bars.transition()
             .duration(750)
             .attr("x", d => this.x(d[0]))
             .attr("y", d => this.y(d[1]))
             .attr("height", d => this.y(0) - this.y(d[1]))
             .attr("width", this.x.bandwidth());
 
-        // Update axes
-        this.svg.select("g")
+        // Add new bars
+        bars.enter()
+            .append("rect")
+            .attr("fill", "steelblue")
+            .attr("x", d => this.x(d[0]))
+            .attr("y", this.y(0))
+            .attr("height", 0)
+            .attr("width", this.x.bandwidth())
             .transition()
             .duration(750)
-            .call(d3.axisBottom(this.x).tickFormat(d => `Store ${d}`));
+            .attr("y", d => this.y(d[1]))
+            .attr("height", d => this.y(0) - this.y(d[1]));
 
+        // Update tooltips
+        this.svg.selectAll("rect title")
+            .text(d => `Store ${d[0]}\nSales: $${d3.format(",.2f")(d[1])}`);
+
+        // Update X axis
+        this.svg.select("g:nth-child(2)")
+            .transition()
+            .duration(750)
+            .call(d3.axisBottom(this.x).tickFormat(d => `Store ${d}`))
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end");
+
+        // Update Y axis
         this.svg.select("g:nth-child(3)")
             .transition()
             .duration(750)
-            .call(d3.axisLeft(this.y));
+            .call(d3.axisLeft(this.y)
+                .tickFormat(d => `$${d3.format(",.0f")(d)}`));
     }
 
     destroyChart() {
@@ -120,8 +172,3 @@ export class BarChart extends Chart {
         this.styles = styles;
     }
 }
-
-// Example usage:
-d3.csv("./sales data-set.csv").then(function(data) {
-    const barChart = new BarChart(data);
-});

@@ -4,17 +4,33 @@ import { Chart } from './chart.js';
 export class PieChart extends Chart {
   constructor(data) {
     super(data);
-    this.data = data;
-    this.styles = {
-      width: 960,
-      height: 500,
-      radius: Math.min(960, 500) / 2
-    };
+    this.data = this.processData(data);
+    this.width = 960;
+    this.height = 500;
+    this.radius = Math.min(this.width, this.height) / 2;
+  }
 
-    this.initChart();
+  processData(rawData) {
+    if (!rawData) return [];
+    
+    // Group by Store and sum Weekly_Sales
+    const groupedData = d3.rollups(
+      rawData,
+      v => d3.sum(v, d => d.Weekly_Sales),
+      d => d.Store
+    ).map(([name, value]) => ({
+      name: `Store ${name}`,
+      value: value
+    }));
+    return groupedData;
   }
 
   initChart(id) {
+    if (!this.data || this.data.length === 0) {
+      console.error("No data available for pie chart");
+      return;
+    }
+
     // Create arc generator
     this.arc = d3.arc()
       .innerRadius(this.radius * 0.67)
@@ -40,7 +56,7 @@ export class PieChart extends Chart {
 
     // Add pie slices
     this.svg.append("g")
-      .selectAll()
+      .selectAll("path")
       .data(this.pie(this.data))
       .join("path")
       .attr("fill", d => this.color(d.data.name))
@@ -53,7 +69,7 @@ export class PieChart extends Chart {
       .attr("font-family", "sans-serif")
       .attr("font-size", 12)
       .attr("text-anchor", "middle")
-      .selectAll()
+      .selectAll("text")
       .data(this.pie(this.data))
       .join("text")
       .attr("transform", d => `translate(${this.arc.centroid(d)})`)
@@ -69,13 +85,15 @@ export class PieChart extends Chart {
 
     // Append to container
     const containerPie = document.getElementById(id);
-    containerPie.appendChild(this.svg.node());
+    if (containerPie) {
+      containerPie.appendChild(this.svg.node());
+    }
   }
 
   updateChart(newData) {
     if (!newData || !this.svg) return;
 
-    this.data = newData;
+    this.data = this.processData(newData);
 
     // Update color scale
     this.color.domain(this.data.map(d => d.name));
@@ -88,8 +106,8 @@ export class PieChart extends Chart {
     paths.transition()
       .duration(750)
       .attrTween("d", d => {
-        const interpolate = d3.interpolate(this.arc._current || d, d);
-        this.arc._current = interpolate(0);
+        const interpolate = d3.interpolate(this._current || d, d);
+        this._current = interpolate(0);
         return t => this.arc(interpolate(t));
       })
       .attr("fill", d => this.color(d.data.name));
@@ -103,11 +121,12 @@ export class PieChart extends Chart {
       .duration(750)
       .attr("transform", d => `translate(${this.arc.centroid(d)})`);
 
-    labels.select("tspan:first-child")
-      .text(d => d.data.name);
-
-    labels.select("tspan:last-child")
-      .text(d => d.data.value.toLocaleString("en-US"));
+    labels.selectAll("tspan")
+      .data(d => [
+        { text: d.data.name, y: "-0.3em" },
+        { text: d.data.value.toLocaleString("en-US"), y: "0.1em" }
+      ])
+      .text(d => d.text);
   }
 
   destroyChart() {
@@ -118,12 +137,13 @@ export class PieChart extends Chart {
   }
 
   /**
- * @param {{ width: number; height: number; radius: number; }} styles
- */
-  set style(styles) {
-    this.styles = styles;
+   * @param {{ width: any; height: any; }} newStyles
+   */
+  set styles(newStyles) {
+    const { width, height } = newStyles;
+    this.width = width || this.width;
+    this.height = height || this.height;
+    this.radius = Math.min(this.width, this.height) / 2;
   }
 }
 
-// Example usage:
-const pieChart = new PieChart();

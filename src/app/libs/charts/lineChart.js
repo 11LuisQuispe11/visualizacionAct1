@@ -105,4 +105,4 @@ export class LineChart extends Chart {
 }
 
 // Example usage:
-const lineChart = new LineChart();
+// const lineChart = new LineChart();
