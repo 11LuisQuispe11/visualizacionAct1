@@ -20,16 +20,13 @@ csvSales.extractDataFromSales().then(data => {
         height: 500,
     };
     pieChart.initChart('container-pie');
-    // const barChart = new BarChart(data);
-    // barChart.styles = {
-    //     width: 500,
-    //     height: 500,
-    //     marginTop: 20,
-    //     marginRight: 30,
-    //     marginBottom: 30,
-    //     marginLeft: 40
-    // };
-    // barChart.initChart('container-bars');
+    document.getElementById('container-bars').innerHTML = '';
+    const barChart = new BarChart(data);
+    barChart.style = {
+        height: 700,
+        width: 900,
+    }
+    barChart.initChart('container-bars');
 }).catch(error => {
     console.error("Error extracting data:", error);
 })

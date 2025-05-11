@@ -7,9 +7,9 @@ csvHandler
     .extractDataFromSales()
     .then((data) => {
         // Calculate totals
-        const totalSales = data.reduce((sum, row) => sum + row.Weekly_Sales, 0);
+        const totalSales = data.length
         const uniqueStores = new Set(data.map(row => row.Store)).size;
-        const features = Object.keys(data[0]).length;
+        const features = data.reduce((acc, row) => acc + row.Weekly_Sales, 0);
 
         // Initialize counters
         const salesCount = new Counter();
@@ -17,9 +17,9 @@ csvHandler
         const featureCount = new Counter();
 
         // Update counters with real data
-        salesCount.countUp({from: 0, to: Math.round(totalSales), duration: 2000, id: 'sales-count'});
-        storeCount.countUp({from: 0, to: uniqueStores, duration: 2000, id: 'store-count'});
-        featureCount.countUp({from: 0, to: features, duration: 2000, id: 'feature-count'});
+        salesCount.countUp({from: 0, to: totalSales, duration: 1000, id: 'sales-count'});
+        storeCount.countUp({from: 0, to: uniqueStores, duration: 1000, id: 'store-count'});
+        featureCount.countUp({from: 0, to: features, duration: 1000, id: 'feature-count'});
     })
     .catch((error) => {
         console.error("Error extracting data:", error);

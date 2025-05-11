@@ -6,10 +6,9 @@ export class BarChart extends Chart {
         super(data);
         this.data = this.processData(data);
         this.width = 960;
-        this.height = 500;
         this.styles = {
-            width: this.width,
-            height: this.height,
+            width: 960,
+            height: 500,
             top: 20,
             right: 30,
             bottom: 70, // Increased to accommodate rotated labels
@@ -19,7 +18,7 @@ export class BarChart extends Chart {
 
     processData(rawData) {
         if (!rawData) return [];
-        
+
         // Group by Store and sum Weekly_Sales
         const groupedData = d3.rollups(
             rawData,
@@ -29,7 +28,7 @@ export class BarChart extends Chart {
 
         // Sort by store number
         groupedData.sort((a, b) => a[0] - b[0]);
-        
+
         console.log("Processed bar data:", groupedData);
         return groupedData;
     }
@@ -43,22 +42,25 @@ export class BarChart extends Chart {
         // Create scales
         this.x = d3.scaleBand()
             .domain(this.data.map(d => d[0]))
-            .range([this.styles.left, this.width - this.styles.right])
+            .range([this.styles.left, this.styles.width - this.styles.right])
             .padding(0.1);
 
         this.y = d3.scaleLinear()
             .domain([0, d3.max(this.data, d => d[1])])
             .nice()
-            .range([this.height - this.styles.bottom, this.styles.top]);
+            .range([this.styles.height - this.styles.bottom, this.styles.top]);
 
         // Create SVG
         this.svg = d3.create("svg")
-            .attr("width", this.width)
-            .attr("height", this.height)
-            .attr("viewBox", [0, 0, this.width, this.height])
+            .attr("width", this.styles.width)
+            .attr("height", this.styles.height)
+            .attr("viewBox", [0, 0, this.styles.width, this.styles.height])
             .attr("style", "max-width: 100%; height: auto;");
 
         // Draw bars
+        const colors = d3.scaleOrdinal()
+              .domain(this.data.map(d => d.name))
+              .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), this.data.length).reverse());
         this.svg.append("g")
             .selectAll("rect")
             .data(this.data)
@@ -67,13 +69,13 @@ export class BarChart extends Chart {
             .attr("y", d => this.y(d[1]))
             .attr("height", d => this.y(0) - this.y(d[1]))
             .attr("width", this.x.bandwidth())
-            .attr("fill", "steelblue")
+            .attr("fill", colors)
             .append("title")
             .text(d => `Store ${d[0]}\nSales: $${d3.format(",.2f")(d[1])}`);
 
         // Add X axis
         this.svg.append("g")
-            .attr("transform", `translate(0,${this.height - this.styles.bottom})`)
+            .attr("transform", `translate(0,${this.styles.height - this.styles.bottom})`)
             .call(d3.axisBottom(this.x).tickFormat(d => `Store ${d}`))
             .selectAll("text")
             .attr("transform", "rotate(-45)")
@@ -169,6 +171,6 @@ export class BarChart extends Chart {
      * @param {{ width: number; height: number; margin: { top: number; right: number; bottom: number; left: number; }; }} styles
      */
     set style(styles) {
-        this.styles = styles;
+        this.styles = { ...this.styles, ...styles };
     }
 }

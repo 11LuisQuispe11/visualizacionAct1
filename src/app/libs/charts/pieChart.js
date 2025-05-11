@@ -33,7 +33,7 @@ export class PieChart extends Chart {
 
     // Create arc generator
     this.arc = d3.arc()
-      .innerRadius(this.radius * 0.67)
+      .innerRadius(this.radius * 0.5)
       .outerRadius(this.radius - 1);
 
     // Create pie generator
@@ -52,7 +52,7 @@ export class PieChart extends Chart {
       .attr("width", this.width)
       .attr("height", this.height)
       .attr("viewBox", [-this.width / 2, -this.height / 2, this.width, this.height])
-      .attr("style", "max-width: 100%; height: auto;");
+      // .attr("style", "max-width: 100%; height: auto;");
 
     // Add pie slices
     this.svg.append("g")
@@ -62,7 +62,7 @@ export class PieChart extends Chart {
       .attr("fill", d => this.color(d.data.name))
       .attr("d", this.arc)
       .append("title")
-      .text(d => `${d.data.name}: ${d.data.value.toLocaleString()}`);
+      // .text(d => `${d.data.name}: ${d.data.value.toLocaleString()}`);
 
     // Add labels
     this.svg.append("g")
