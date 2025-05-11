@@ -28,8 +28,6 @@ export class BarChart extends Chart {
 
         // Sort by store number
         groupedData.sort((a, b) => a[0] - b[0]);
-
-        console.log("Processed bar data:", groupedData);
         return groupedData;
     }
 
