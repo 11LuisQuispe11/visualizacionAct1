@@ -1,9 +1,7 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-import { Chart } from './chart.js';
 
-export class BarChart extends Chart {
+export class BarChart {
     constructor(data) {
-        super(data);
         this.data = this.processData(data);
         this.width = 960;
         this.styles = {
@@ -36,6 +34,9 @@ export class BarChart extends Chart {
             console.error("No data available for bar chart");
             return;
         }
+        this.color = d3.scaleOrdinal()
+            .domain(this.data.map(d => d.name))
+            .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), this.data.length).reverse());
 
         // Create scales
         this.x = d3.scaleBand()
@@ -57,8 +58,8 @@ export class BarChart extends Chart {
 
         // Draw bars
         const colors = d3.scaleOrdinal()
-              .domain(this.data.map(d => d.name))
-              .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), this.data.length).reverse());
+            .domain(this.data.map(d => d.name))
+            .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), this.data.length).reverse());
         this.svg.append("g")
             .selectAll("rect")
             .data(this.data)

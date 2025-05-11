@@ -1,7 +1,6 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-import { Chart } from './chart.js';
 
-export class AreaChart extends Chart {
+export class AreaChart {
     constructor(data) {
         super(data);
         this.data = data

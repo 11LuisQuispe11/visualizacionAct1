@@ -1,9 +1,8 @@
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-import { Chart } from './chart.js';
 
-export class PieChart extends Chart {
+
+export class PieChart {
   constructor(data) {
-    super(data);
     this.data = this.processData(data);
     this.width = 960;
     this.height = 500;

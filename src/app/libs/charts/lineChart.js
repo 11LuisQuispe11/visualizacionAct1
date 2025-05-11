@@ -1,7 +1,7 @@
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-import { Chart } from './chart.js';
 
-export class LineChart extends Chart {
+
+export class LineChart {
     constructor(data) {
         super(data);
         this.styles = {

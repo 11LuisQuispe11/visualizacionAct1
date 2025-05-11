@@ -1,22 +1,21 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-import { Chart } from "./chart.js";
 
-export class HistogramChart extends Chart {
+export class HistogramChart {
     constructor(data) {
-        super(data);
+        this.data = data;
         this.styles = {
             width: 960,
-            height: 500,
-            marginTop: 20,
+            height: 500,  // Increased height for better visibility
+            marginTop: 30,
             marginRight: 20,
             marginBottom: 50, // Increased for date labels
-            marginLeft: 60    // Increased for sales labels
+            marginLeft: 80    // Increased for sales labels
         };
     }
 
     processData(rawData) {
         if (!rawData || !Array.isArray(rawData)) return [];
-        
+
         // Convert dates and aggregate sales by date
         const salesByDate = d3.rollup(
             rawData,
@@ -55,13 +54,20 @@ export class HistogramChart extends Chart {
             .domain(d3.extent(data, d => d.date))
             .range([this.styles.marginLeft, this.styles.width - this.styles.marginRight]);
 
+        // Calculate the actual range of sales values
+        const maxSales = 50000000;
+
         const y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d.sales)])
-            .range([this.styles.height - this.styles.marginBottom, this.styles.marginTop]);
+            .domain([0, maxSales * 1.1]) // Add 10% padding to max value
+            .range([this.styles.height - this.styles.marginBottom, this.styles.marginTop])
+            .nice(); // This will round the scale to nice values
 
         // Create the histogram bins
         const binWidth = (x.range()[1] - x.range()[0]) / 30; // Adjust number of bins as needed
-        
+        this.color = d3.scaleOrdinal()
+            .domain(this.data.map(d => d.name))
+            .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), 65).reverse());
+
         // Create bars
         svg.append('g')
             .selectAll('rect')
@@ -71,21 +77,17 @@ export class HistogramChart extends Chart {
             .attr('y', d => y(d.sales))
             .attr('width', binWidth - 1)
             .attr('height', d => y(0) - y(d.sales))
-            .attr('fill', '#69b3a2')
-            .on('mouseover', function(event, d) {
-                d3.select(this).attr('fill', '#28796c');
+            .attr('fill', this.color)
+            .on('mouseover', function (event, d) {
+                // d3.select(this).attr('fill', '#28796c');
                 // Show tooltip
                 tooltip.style('display', 'block')
-                    .html(`Date: ${d.date.toLocaleDateString()}<br>Sales: $${d3.format(',.2f')(d.sales)}`);
+                    .html(`Fechas de ventas: ${d.date.toLocaleDateString()}<br>Ventas: $${d3.format(',.2f')(d.sales)}`);
             })
-            .on('mousemove', function(event) {
+            .on('mousemove', function (event) {
                 tooltip.style('left', (event.pageX + 10) + 'px')
                     .style('top', (event.pageY - 10) + 'px');
             })
-            .on('mouseout', function() {
-                d3.select(this).attr('fill', '#69b3a2');
-                tooltip.style('display', 'none');
-            });
 
         // Add X axis
         svg.append('g')
@@ -102,7 +104,13 @@ export class HistogramChart extends Chart {
         svg.append('g')
             .attr('transform', `translate(${this.styles.marginLeft},0)`)
             .call(d3.axisLeft(y)
-                .tickFormat(d => '$' + d3.format(',.0f')(d)));
+                .ticks(10)  // Adjusted number of ticks
+                .tickSize(-this.styles.width + this.styles.marginLeft + this.styles.marginRight) // Add grid lines
+                .tickFormat(d => '$' + d3.format(',.0f')(d)))
+            .call(g => g.select(".domain").remove()) // Remove the axis line
+            .call(g => g.selectAll(".tick line") // Style grid lines
+                .attr("stroke", "#ddd")
+                .attr("opacity", 0.5));
 
         // Add labels
         svg.append('text')
@@ -110,7 +118,7 @@ export class HistogramChart extends Chart {
             .attr('text-anchor', 'middle')
             .attr('x', this.styles.width / 2)
             .attr('y', this.styles.height - 5)
-            .text('Date');
+            .text('Fechas');
 
         svg.append('text')
             .attr('class', 'y-label')
@@ -118,7 +126,7 @@ export class HistogramChart extends Chart {
             .attr('transform', 'rotate(-90)')
             .attr('x', -(this.styles.height / 2))
             .attr('y', 15)
-            .text('Sales ($)');
+            .text('Ventas ($)');
 
         // Create tooltip
         const tooltip = d3.select(container)

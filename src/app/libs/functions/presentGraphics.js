@@ -9,7 +9,7 @@ import { HistogramChart } from '../charts/histogramChart.js';
 // Initialize loading states
 document.getElementById('container-line').innerHTML = 'Loading';
 document.getElementById('container-pie').innerHTML = 'Loading';
-document.getElementById('container-area').innerHTML = 'Loading';
+// document.getElementById('container-area').innerHTML = 'Loading';
 document.getElementById('container-bars').innerHTML = 'Loading';
 document.getElementById('container-histogram').innerHTML = 'Loading';
 document.getElementById('sales-table').innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
@@ -38,10 +38,7 @@ csvSales.extractDataFromSales().then(data => {
     }
     barChart.initChart('container-bars');
     const histogramChart = new HistogramChart(data);
-    histogramChart.style = {
-        height: 700,
-        width: 900,
-    }
+
     histogramChart.initChart('container-histogram');
 }).catch(error => {
     console.error("Error extracting data:", error);
