@@ -5,6 +5,8 @@ import { BarChart } from '../charts/barChart.js';
 import { CSVHandler } from '../data/csvHandler.js';
 import { initializeTable } from './createTable.js';
 import { HistogramChart } from '../charts/histogramChart.js';
+// En presentGraphics.js
+import { LineChart } from '../charts/lineChart.js';
 
 // Initialize loading states
 document.getElementById('container-line').innerHTML = 'Loading';
@@ -40,6 +42,16 @@ csvSales.extractDataFromSales().then(data => {
     const histogramChart = new HistogramChart(data);
 
     histogramChart.initChart('container-histogram');
+    
+    document.getElementById('container-line').innerHTML = '';
+    const lineChart = new LineChart(data);
+    lineChart.styles = {
+        width: 500,
+        height: 500,
+        marginLeft: 80
+    };
+    lineChart.initChart('container-line');
+
 }).catch(error => {
     console.error("Error extracting data:", error);
 })
